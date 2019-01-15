@@ -1,11 +1,15 @@
 package com.alimazon.air.model;
 
+import com.alimazon.air.model.enums.RobotStatus;
+import com.alimazon.air.model.enums.RobotType;
+
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "robot")
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Robot {
+public abstract class Robot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -18,14 +22,23 @@ public class Robot {
     private String warehouseId;
 
     @Column(name = "robot_type")
-    private String robotType;
+    private RobotType robotType;
+
+    @Column(name = "status")
+    private RobotStatus status;
+
+    Robot() {
+    }
+
+    Robot(String location, String warehouseId, RobotType robotType) {
+        this.location = location;
+        this.warehouseId = warehouseId;
+        this.robotType = robotType;
+        this.status = RobotStatus.DISCONNECTED;
+    }
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getLocation() {
@@ -44,12 +57,20 @@ public class Robot {
         this.warehouseId = warehouseId;
     }
 
-    public String getRobotType() {
+    public RobotType getRobotType() {
         return robotType;
     }
 
-    public void setRobotType(String robotType) {
+    public void setRobotType(RobotType robotType) {
         this.robotType = robotType;
+    }
+
+    public RobotStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RobotStatus status) {
+        this.status = status;
     }
 
     @Override
@@ -58,7 +79,25 @@ public class Robot {
                 "id=" + id +
                 ", location='" + location + '\'' +
                 ", warehouseId='" + warehouseId + '\'' +
-                ", robotType='" + robotType + '\'' +
+                ", robotType=" + robotType +
+                ", status=" + status +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Robot)) return false;
+        Robot robot = (Robot) o;
+        return Objects.equals(getId(), robot.getId()) &&
+                Objects.equals(getLocation(), robot.getLocation()) &&
+                Objects.equals(getWarehouseId(), robot.getWarehouseId()) &&
+                getRobotType() == robot.getRobotType() &&
+                getStatus() == robot.getStatus();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getLocation(), getWarehouseId(), getRobotType(), getStatus());
     }
 }
