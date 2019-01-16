@@ -27,14 +27,18 @@ public abstract class Robot {
     @Column(name = "status")
     private RobotStatus status;
 
+    @Column(name = "ip_addess")
+    private String ipAddress;
+
     Robot() {
     }
 
-    Robot(String location, String warehouseId, RobotType robotType) {
+    Robot(String location, String warehouseId, RobotType robotType, String ipAddress) {
         this.location = location;
         this.warehouseId = warehouseId;
         this.robotType = robotType;
         this.status = RobotStatus.DISCONNECTED;
+        this.ipAddress = ipAddress;
     }
 
     public Long getId() {
@@ -73,9 +77,18 @@ public abstract class Robot {
         this.status = status;
     }
 
-    public void executeTask(){
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public void executeTask() {
         //TODO execute Task
     }
+
     @Override
     public String toString() {
         return "Robot{" +

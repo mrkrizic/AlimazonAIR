@@ -95,8 +95,7 @@ public class RobotController {
             throws RobotNotFoundException {
         //TODO schedule first free Robot for the Task in this Warehouse
         //Task should be a seperate class
-        return ResponseEntity.ok().body(new WarehouseBot("", warehouseId, RobotType.WAREHOUSE_BOT, 0.0) {
-        });
+        return ResponseEntity.ok().body(new WarehouseBot("", warehouseId, RobotType.WAREHOUSE_BOT, "0.0.0.0", 0.0));
     }
 
     @GetMapping("/warehouse/getDronesAt/{id}")
@@ -111,11 +110,12 @@ public class RobotController {
      * *****************************************************************************************************************/
 
     @GetMapping("/web_service/connect")
-    public ResponseEntity<Boolean> connectToWebService(){
+    public ResponseEntity<Boolean> connectToWebService() {
         return ResponseEntity.ok().body(Boolean.TRUE);
     }
+
     @GetMapping("/web_service/disconnect")
-    public ResponseEntity<Boolean> disconnectFromWebService(){
+    public ResponseEntity<Boolean> disconnectFromWebService() {
         return ResponseEntity.ok().body(Boolean.TRUE);
     }
 

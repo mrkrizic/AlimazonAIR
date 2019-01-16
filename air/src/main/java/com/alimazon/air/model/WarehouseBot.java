@@ -18,8 +18,8 @@ public class WarehouseBot extends Robot {
         super();
     }
 
-    public WarehouseBot(String location, String warehouseId, RobotType robotType, Double maxLoad) {
-        super(location, warehouseId, robotType);
+    public WarehouseBot(String location, String warehouseId, RobotType robotType,String ipAddress, Double maxLoad) {
+        super(location, warehouseId, robotType, ipAddress);
         this.maxLoad = maxLoad;
     }
 

@@ -19,8 +19,8 @@ public class Drone extends Robot {
         super();
     }
 
-    public Drone(String location, String warehouseId, RobotType robotType, DroneType droneType) {
-        super(location, warehouseId, robotType);
+    public Drone(String location, String warehouseId, RobotType robotType, String ipAddress, DroneType droneType) {
+        super(location, warehouseId, robotType, ipAddress);
         this.droneType = droneType;
     }
 
