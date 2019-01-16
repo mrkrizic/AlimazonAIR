@@ -4,6 +4,7 @@ import com.alimazon.air.error_handling.RobotNotFoundException;
 import com.alimazon.air.model.Drone;
 import com.alimazon.air.model.Robot;
 import com.alimazon.air.model.WarehouseBot;
+import com.alimazon.air.model.enums.RobotType;
 import com.alimazon.air.respository.RobotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static java.util.stream.Collectors.toList;
 
@@ -63,7 +65,6 @@ public class RobotController {
         return response;
     }
 
-
     /*******************************************************************************************************************
      * ==================================== Warehouse Bot API ==========================================================
      * *****************************************************************************************************************/
@@ -76,7 +77,7 @@ public class RobotController {
 
 
     /*******************************************************************************************************************
-     * ==================================== Warehouse Bot API ==========================================================
+     * ======================================== Drone Bot API ==========================================================
      * *****************************************************************************************************************/
     @GetMapping("/drones")
     public List<Robot> getAllDrones() {
@@ -84,4 +85,38 @@ public class RobotController {
                 .filter(bot -> bot.getClass().getName().equals(Drone.class.getName()))
                 .collect(toList());
     }
+
+    /*******************************************************************************************************************
+     * ======================================== Warehouse API ==========================================================
+     * *****************************************************************************************************************/
+
+    @PostMapping("/warehouse/scheduleTask/{id}")
+    public ResponseEntity<Robot> scheduleTask(@PathVariable(value = "id") String warehouseId, @Valid @RequestBody String task)
+            throws RobotNotFoundException {
+        //TODO schedule first free Robot for the Task in this Warehouse
+        //Task should be a seperate class
+        return ResponseEntity.ok().body(new WarehouseBot("", warehouseId, RobotType.WAREHOUSE_BOT, 0.0) {
+        });
+    }
+
+    @GetMapping("/warehouse/getDronesAt/{id}")
+    public List<Robot> getAllDrones(@PathVariable(value = "id") String id) throws RobotNotFoundException {
+        return repository.findAll().stream()
+                .filter(bot -> bot.getWarehouseId().equals(id))
+                .collect(toList());
+    }
+
+    /*******************************************************************************************************************
+     * ======================================== Web Service API ========================================================
+     * *****************************************************************************************************************/
+
+    @GetMapping("/web_service/connect")
+    public ResponseEntity<Boolean> connectToWebService(){
+        return ResponseEntity.ok().body(Boolean.TRUE);
+    }
+    @GetMapping("/web_service/disconnect")
+    public ResponseEntity<Boolean> disconnectFromWebService(){
+        return ResponseEntity.ok().body(Boolean.TRUE);
+    }
+
 }

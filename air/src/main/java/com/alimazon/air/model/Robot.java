@@ -73,6 +73,9 @@ public abstract class Robot {
         this.status = status;
     }
 
+    public void executeTask(){
+        //TODO execute Task
+    }
     @Override
     public String toString() {
         return "Robot{" +
