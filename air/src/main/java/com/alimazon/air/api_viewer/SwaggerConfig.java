@@ -10,7 +10,11 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-
+/**
+ * This is the configuration file for Swagger.
+ * It offers a clean interactive view for the Rest Controller
+ * and makes it easier to access and test the API without any prior knowledge
+ */
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig extends WebMvcConfigurationSupport {

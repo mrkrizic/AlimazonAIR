@@ -4,12 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Exception in case a requested robot cannot be found
+ * Exception if an invalid status is being passed
  */
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class RobotNotFoundException extends RuntimeException {
+public class InvalidStatusException extends RuntimeException {
 
-    public RobotNotFoundException(String message){
+    public InvalidStatusException(String message) {
         super(message);
     }
 }
