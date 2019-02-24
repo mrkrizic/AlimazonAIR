@@ -1,13 +1,14 @@
 package com.alimazon.air.model.enums;
 
+import com.alimazon.air.model.Robot;
+
 /**
  * Enum for each possible robot status
- * When the robot goes offline - DISCONNECTED
- * When the robot is online and has no current task - IDLE
- * When the robot is executing a task - BUSY
- * When the robot is not functioning and tries to repair itself (reboot for example) - DAMAGED
- * When the robot cannot fix it's problem automatically - REQUESTING_REPAIRS
- * If a status is passed it has to be checked if it is valid using the isValid() method
+ * Robot goes offline - DISCONNECTED
+ * Robot is online and has no current task - IDLE
+ * Robot is executing a task - BUSY
+ * Robot is not functioning and tries to repair itself (reboot for example) - DAMAGED
+ * Robot cannot fix it's problem automatically - REQUESTING_REPAIRS
  */
 public enum RobotStatus {
 
@@ -26,16 +27,17 @@ public enum RobotStatus {
     }
 
     /**
-     * checks if the Status is valid
-     *
-     * @return validity of the status
+     * Creates a robot status from a string
+     * @param statusString status string (case insensitive)
+     * @return robot status
      */
-    public boolean isValid() {
-        return this.equals(DISCONNECTED) ||
-                this.equals(IDLE) ||
-                this.equals(BUSY) ||
-                this.equals(DAMAGED) ||
-                this.equals(REQUESTING_REPAIRS);
+    public static RobotStatus fromString(String statusString) {
+        for (RobotStatus status : RobotStatus.values()) {
+            if (status.fieldDescription.equalsIgnoreCase(statusString)) {
+                return status;
+            }
+        }
+        return null;
     }
 
     /**

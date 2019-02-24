@@ -2,17 +2,22 @@ package com.alimazon.air.model;
 
 import com.alimazon.air.model.enums.RobotStatus;
 import com.alimazon.air.model.enums.RobotType;
+import lombok.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.*;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.util.Objects;
 
 /**
  * Abstract Robot superclass. Each new Robot Type should extend from this class
  * to ensure it is supported by the database.
  * <p>
- * Lombok annotations are used to assign attributes to columns for the Database.
+ * Lombok annotations are used to avoid boilerplate code as getters/setters, toString, etc.
  * Each Robot has a unique id that gets automatically generated when it gets created.
  * The Location gives information about the whereabouts of the robot. Currently countries are
  * used, but geographical coordinates would be preferred in a real world scenario.
@@ -26,6 +31,11 @@ import java.util.Objects;
  * A Robot has a maximum capacity and should not handle payloads over it.
  */
 @Entity
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
 @Table(name = "robot")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Robot {
@@ -53,19 +63,6 @@ public abstract class Robot {
     private Double capacity;
 
     /**
-     * This Constructor is needed but should not be used anywhere in the program
-     * Keep it Package private to avoid inheritance conflicts
-     */
-    Robot() {
-        this.location = "";
-        this.warehouseId = "";
-        this.robotType = null;
-        this.status = null;
-        this.ipAddress = "0.0.0.0";
-        this.capacity = 0.0;
-    }
-
-    /**
      * The Constructor used to create a new Robot
      * Each subclass should call this constructor to initialize the necessary values.
      *
@@ -85,110 +82,16 @@ public abstract class Robot {
     }
 
     /**
-     * ============================== Getters and Setters ==============================
-     */
-    public Long getId() {
-        return id;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getWarehouseId() {
-        return warehouseId;
-    }
-
-    public void setWarehouseId(String warehouseId) {
-        this.warehouseId = warehouseId;
-    }
-
-    public RobotType getRobotType() {
-        return robotType;
-    }
-
-    public void setRobotType(RobotType robotType) {
-        this.robotType = robotType;
-    }
-
-    public RobotStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RobotStatus status) {
-        this.status = status;
-    }
-
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    public void setIpAddress(String ipAddress) {
-        this.ipAddress = ipAddress;
-    }
-
-    public Double getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(Double capacity) {
-        this.capacity = capacity;
-    }
-
-    /**
-     * ============================== Other Methods ==============================
-     */
-
-    /**
      * Method to execute a Task
      * A HTTP request is made with the task to the Robots' API which
      * gets uploaded to the micro controller and starts executing the task.
      * TODO pass task in post request
      */
-    public ResponseEntity<String> executeTask(Task task) {
+    public ResponseEntity<String> executeTask(Task task) throws SocketTimeoutException {
         final String robotIP = getIpAddress();
-        final String uri = "http://" + robotIP + ":5000/get_task";
+        final String uri = "http://" + robotIP + ":5000/get_task/" + task;
         RestTemplate restTemplate = new RestTemplate();
-        setStatus(RobotStatus.BUSY);
         String result = restTemplate.getForObject(uri, String.class);
         return ResponseEntity.ok().body(result);
-    }
-
-    /**
-     * ============================== toString, equals, hashcode ==============================
-     */
-    @Override
-    public String toString() {
-        return "Robot{" +
-                "id=" + id +
-                ", location='" + location + '\'' +
-                ", warehouseId='" + warehouseId + '\'' +
-                ", robotType=" + robotType +
-                ", status=" + status +
-                ", capacity=" + capacity +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Robot)) return false;
-        Robot robot = (Robot) o;
-        return Objects.equals(getId(), robot.getId()) &&
-                Objects.equals(getLocation(), robot.getLocation()) &&
-                Objects.equals(getWarehouseId(), robot.getWarehouseId()) &&
-                getRobotType() == robot.getRobotType() &&
-                getStatus() == robot.getStatus() &&
-                getCapacity().equals(robot.getCapacity());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getLocation(), getWarehouseId(), getRobotType(),
-                getStatus(), getIpAddress(), getCapacity());
     }
 }

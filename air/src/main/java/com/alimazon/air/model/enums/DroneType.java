@@ -26,6 +26,21 @@ public enum DroneType {
     }
 
     /**
+     * Generates a drone type from a input string
+     *
+     * @param fieldDescription field description (case insensitive)
+     * @return drone type
+     */
+    public static DroneType fromString(String fieldDescription) {
+        for (DroneType type : DroneType.values()) {
+            if (type.fieldDescription.equalsIgnoreCase(fieldDescription)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns string representation of a type
      *
      * @return field description

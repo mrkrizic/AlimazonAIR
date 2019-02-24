@@ -20,7 +20,23 @@ public enum RobotType {
     }
 
     /**
+     * Generates a robot type from a input string
+     *
+     * @param fieldDescription field description (case insensitive)
+     * @return robot type
+     */
+    public static RobotType fromString(String fieldDescription) {
+        for (RobotType type : RobotType.values()) {
+            if (type.fieldDescription.equalsIgnoreCase(fieldDescription)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns string representation of a type
+     *
      * @return field description
      */
     @Override

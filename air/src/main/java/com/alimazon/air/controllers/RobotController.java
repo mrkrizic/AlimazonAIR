@@ -1,6 +1,5 @@
 package com.alimazon.air.controllers;
 
-import com.alimazon.air.error_handling.InvalidStatusException;
 import com.alimazon.air.error_handling.RobotNotFoundException;
 import com.alimazon.air.model.Drone;
 import com.alimazon.air.model.Robot;
@@ -11,12 +10,8 @@ import com.alimazon.air.model.enums.RobotType;
 import com.alimazon.air.respository.RobotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import javax.validation.Valid;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
@@ -28,6 +23,9 @@ import static java.util.stream.Collectors.toList;
  * The Tasks are currently only mock ups to test the functionality of this Controller
  * This controller uses the swagger framework for a clean, responsive user interface
  * To use swagger use the following url: http://localhost:8080/swagger-ui.html#
+ * To use basic functionality use the following url: http://localhost:8080/api/air/
+ * and add the mapping defined in the functions
+ * Example: Enter "http://localhost:8080/api/air/robots" in the browser to view all robots
  */
 @RestController
 @RequestMapping("/api/air")
@@ -63,7 +61,7 @@ public class RobotController {
      *
      * @param robotId the id of the robot
      * @return robot with this id
-     * @throws RobotNotFoundException
+     * @throws RobotNotFoundException no robot found for given id
      */
     @GetMapping("/robots/{id}")
     public ResponseEntity<Robot> getRobotById(@PathVariable(value = "id") Long robotId) throws RobotNotFoundException {
@@ -73,16 +71,56 @@ public class RobotController {
     }
 
     /**
-     * This adds the robot to the database and makes it usable
-     * Every new robot should be registered using this method
+     * This adds the drone to the database and makes it usable
+     * Every new drone should be registered using this method
+     * TODO getters and setters for all entities
      *
-     * @param robot the robot to be registered
-     * @return new robot
+     * @param drone the drone to be registered
+     * @return new drone
      */
-    @PostMapping("/robots")
-    public Robot createRobot(@Valid @RequestBody Robot robot) {
-        return repository.save(robot);
+    @PostMapping("/create/drone")
+    public Robot createDrone(Drone drone) {
+        Robot robot = checkDuplicateIp(drone.getIpAddress());
+        if (robot != null) return robot;
+        drone.setRobotType(RobotType.DRONE);
+
+        return repository.save(drone);
     }
+
+    /**
+     * This adds the warehouse bot to the database and makes it usable
+     * Every new bot should be registered using this method
+     *
+     * @param bot the warehouse bot to be registered
+     * @return new bot
+     */
+    @PostMapping("/create/warehouseBot")
+    public Robot createWarehouseBot(WarehouseBot bot) {
+        Robot robot = checkDuplicateIp(bot.getIpAddress());
+        if (robot != null) return robot;
+        bot.setRobotType(RobotType.WAREHOUSE_BOT);
+        return repository.save(bot);
+    }
+
+    /**
+     * private method that checks if a robot with this ip address has already been registered
+     * If this robot already exists or has registered before but has disconnected,
+     * its' status is set to idle
+     *
+     * @param ipAddress the ip address of the robot
+     * @return robot with given ip address
+     */
+    private Robot checkDuplicateIp(String ipAddress) {
+        Optional<Robot> robotWithIp = repository.findByIpAddress(ipAddress);
+        if (robotWithIp.isPresent()) {
+            Robot robot = robotWithIp.get();
+            robot.setStatus(RobotStatus.IDLE);
+            repository.save(robot);
+            return robot;
+        }
+        return null;
+    }
+
 
     /**
      * Changes the status of the Robot.
@@ -94,18 +132,14 @@ public class RobotController {
      * Robot is not available anymore - switch to DISCONNECTED
      *
      * @param robotId      the id of the Robot
-     * @param robotDetails the  details of the Robot
-     * @param status       the status to be set
+     * @param statusString the status to be set
      * @return updated Robot
      */
-    @PostMapping("/robots/status/idle/{id}")
+    @PostMapping("/robots/status/{id}")
     public ResponseEntity<Robot> setRobotStatus(@PathVariable(value = "id") Long robotId,
-                                                @Valid @RequestBody Robot robotDetails,
-                                                RobotStatus status) {
-        if (!status.isValid()) {
-            throw new InvalidStatusException(status + " is not a valid status!");
-        }
-        Robot robot = repository.findById(robotDetails.getId())
+                                                String statusString) {
+        RobotStatus status = RobotStatus.fromString(statusString);
+        Robot robot = repository.findById(robotId)
                 .orElseThrow(() -> new RobotNotFoundException("Robot with id " + robotId + " not found!"));
         robot.setStatus(status);
         final Robot updatedRobot = repository.save(robot);
@@ -119,11 +153,11 @@ public class RobotController {
      * @param robotId      the id of the robot
      * @param robotDetails the details of the robot
      * @return the updated robot
-     * @throws RobotNotFoundException
+     * @throws RobotNotFoundException no robot found for given id
      */
     @PutMapping("/robots/{id}")
     public ResponseEntity<Robot> updateRobot(@PathVariable(value = "id") Long robotId,
-                                             @Valid @RequestBody Robot robotDetails) throws RobotNotFoundException {
+                                             @RequestBody Robot robotDetails) throws RobotNotFoundException {
         Robot robot = repository.findById(robotId)
                 .orElseThrow(() -> new RobotNotFoundException("Robot with id " + robotId + " not found!"));
         robot.setLocation(robotDetails.getLocation());
@@ -140,7 +174,7 @@ public class RobotController {
      *
      * @param robotId the id of the robot
      * @return the deleted robot
-     * @throws RobotNotFoundException
+     * @throws RobotNotFoundException no robot found for given id
      */
     @DeleteMapping("/robots/{id}")
     public Map<String, Boolean> deleteRobot(@PathVariable(value = "id") Long robotId) throws RobotNotFoundException {
@@ -152,7 +186,7 @@ public class RobotController {
         return response;
     }
 
-    /*******************************************************************************************************************
+    /*^*****************************************************************************************************************
      * ==================================== Warehouse Bot API ==========================================================
      * *****************************************************************************************************************/
     /**
@@ -168,7 +202,7 @@ public class RobotController {
     }
 
 
-    /*******************************************************************************************************************
+    /*^*****************************************************************************************************************
      * ======================================== Drone Bot API ==========================================================
      * *****************************************************************************************************************/
     /**
@@ -183,57 +217,65 @@ public class RobotController {
                 .collect(toList());
     }
 
-    /*******************************************************************************************************************
+    /*^*****************************************************************************************************************
      * ======================================== Warehouse API ==========================================================
      * *****************************************************************************************************************/
 
     /**
      * Schedules a task to pass to a bot in the warehouse with given id
+     *
      * If there is no available robot or all robots are busy, the task should be
      * put into a queue that passes the task to the first available robot via a REST call
      * Tasks have a timestamp and should be sorted accordingly (sooner to later)
      * The queue should be checked every time a robot switches to idle
-     *
-     * @param id robot id
+     * TODO implement scheduling
+     * @param warehouseId warehouse id
      * @return Task
-     * @throws RobotNotFoundException
+     * @throws RobotNotFoundException no robot found for given id
      */
-    @PostMapping("/warehouse/scheduleTask/{id}")
-    public ResponseEntity<String> scheduleTask(@PathVariable(value = "id") String id, Task task)
+    @PostMapping("/warehouse/scheduleTask/{warehouse_id}")
+    public ResponseEntity<String> scheduleTask(@PathVariable(value = "warehouse_id") String warehouseId, String taskInfo, String robotType)
             throws RobotNotFoundException {
-        List<Robot> robots = repository.findAll().stream()
-                .filter(bot -> bot.getWarehouseId().equals(id))
-                .collect(toList());
-        Robot freeRobot = null;
+        Task task = new Task(taskInfo, RobotType.fromString(robotType));
+        List<Robot> robots = repository.findByWarehouseId(warehouseId);
         for (Robot robot : robots) {
             if (robot.getStatus().equals(RobotStatus.IDLE)
                     && robot.getRobotType().equals(task.getRobotType())) {
-                freeRobot = robot;
+                try {
+                    robot.setStatus(RobotStatus.BUSY);
+                    repository.save(robot);
+
+                    ResponseEntity<String> robotResponse = robot.executeTask(task);
+
+                    robot.setStatus(RobotStatus.IDLE);
+                    repository.save(robot);
+
+                    return robotResponse;
+                } catch (Exception cex) {
+                    robot.setStatus(RobotStatus.DISCONNECTED);
+                    repository.save(robot);
+                    continue;
+                }
             }
         }
-        if (freeRobot == null) {
-            //TODO schedule first free robot for the Task
-            return ResponseEntity.ok().body("No free Robot available");
-        }
-        //TODO switch to idle once finished
-        return freeRobot.executeTask(task);
+        return ResponseEntity.ok().body("No free Robot available");
     }
 
     /**
      * Returns all Drones in the warehouse with the given id
      *
-     * @param id warehouse id
+     * @param warehouseId warehouse id
      * @return list of drones at warehouse with given id
-     * @throws RobotNotFoundException
+     * @throws RobotNotFoundException no robot found for given id
      */
     @GetMapping("/warehouse/getDronesAt/{id}")
-    public List<Robot> getAllDrones(@PathVariable(value = "id") String id) throws RobotNotFoundException {
+    public List<Robot> getAllDrones(@PathVariable(value = "id") String warehouseId) throws RobotNotFoundException {
         return repository.findAll().stream()
-                .filter(bot -> bot.getWarehouseId().equals(id))
+                .filter(bot -> bot.getWarehouseId().equals(warehouseId))
                 .collect(toList());
     }
 
-    /*******************************************************************************************************************
+    /*^*****************************************************************************************************************
      * ======================================== Web Service API ========================================================
      * *****************************************************************************************************************/
 
